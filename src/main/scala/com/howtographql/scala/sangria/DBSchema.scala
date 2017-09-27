@@ -29,9 +29,9 @@ object DBSchema {
     Links.schema.create,
 
     Links ++= Seq(
-      Link(0, "http://howtographql.com", "Awesome community driven GraphQL tutorial"),
-      Link(0, "http://graphql.org", "Official GraphQL webpage"),
-      Link(0, "https://facebook.github.io/graphql/", "GraphQL specification")
+      Link(1, "http://howtographql.com", "Awesome community driven GraphQL tutorial"),
+      Link(2, "http://graphql.org", "Official GraphQL webpage"),
+      Link(3, "https://facebook.github.io/graphql/", "GraphQL specification")
     )
   )
 
