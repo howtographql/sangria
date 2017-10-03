@@ -10,14 +10,10 @@ class DAO(db: Database) {
 
   def allLinks = db.run(Links.result)
 
-  def getLink(id: Int): Future[Option[Link]] = {
-    println(s"LINK : $id")
+  def getLinks(ids: Seq[Int]): Future[Seq[Link]] = {
+    println(s"get links: ${ids.mkString(",")}")
     db.run(
-      Links.filter(_.id === id).result.headOption
+      Links.filter(_.id inSet ids).result
     )
   }
-
-  def getLinks(ids: Seq[Int]) = db.run(
-    Links.filter(_.id inSet ids).result
-  )
 }
