@@ -1,3 +1,5 @@
 package com.howtographql.scala.sangria.models
 
-case class Link(id: Int, url: String, description: String)
+import akka.http.scaladsl.model.DateTime
+
+case class Link(id: Int, url: String, description: String, createdAt: DateTime)

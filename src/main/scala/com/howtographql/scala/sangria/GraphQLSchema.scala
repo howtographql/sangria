@@ -1,12 +1,32 @@
 package com.howtographql.scala.sangria
 
+import akka.http.scaladsl.model.DateTime
 import com.howtographql.scala.sangria.models.Link
+import sangria.ast.StringValue
 import sangria.execution.deferred.{DeferredResolver, Fetcher, HasId}
 import sangria.schema.{Field, ListType, ObjectType}
 import sangria.schema._
 import sangria.macros.derive._
+import sangria.validation.Violation
 
 object GraphQLSchema {
+
+  case object DateTimeCoerceViolation extends Violation {
+    override def errorMessage: String = "Error parsing DateTime"
+  }
+
+  implicit val GraphQLDateTime = ScalarType[DateTime]("DateTime",
+    coerceOutput = (dt, _) => dt.toString,
+    coerceInput = {
+      case StringValue(dt, _,_ ) => DateTime.fromIsoDateTimeString(dt).toRight(DateTimeCoerceViolation)
+      case _ => Left(DateTimeCoerceViolation)
+    },
+    coerceUserInput = {
+      case s: String => DateTime.fromIsoDateTimeString(s).toRight(DateTimeCoerceViolation)
+      case _ => Left(DateTimeCoerceViolation)
+    }
+  )
+
 
   implicit val LinkType = deriveObjectType[Unit, Link]()
 
@@ -14,8 +34,6 @@ object GraphQLSchema {
   val linksFetcher = Fetcher(
     (ctx: MyContext, ids: Seq[Int]) => ctx.dao.getLinks(ids)
   )
-
-
 
 
   val Id = Argument("id", IntType)
