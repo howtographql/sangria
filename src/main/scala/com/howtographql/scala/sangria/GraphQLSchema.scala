@@ -1,11 +1,12 @@
 package com.howtographql.scala.sangria
 
 import akka.http.scaladsl.model.DateTime
-import com.howtographql.scala.sangria.models.{Link, User, Vote}
+import com.howtographql.scala.sangria.models.{Identifiable, Link, User, Vote}
 import sangria.ast.StringValue
 import sangria.execution.deferred.{DeferredResolver, Fetcher, HasId}
 import sangria.schema.{Field, ListType, ObjectType}
 import sangria.schema._
+import sangria.macros._
 import sangria.macros.derive._
 import sangria.validation.Violation
 
@@ -27,23 +28,33 @@ object GraphQLSchema {
     }
   )
 
+  val IdentifiableType = InterfaceType(
+    "Identifiable",
+    fields[Unit, Identifiable](
+      Field("id", IntType, resolve = _.value.id)
+    )
+  )
 
-  implicit val LinkType = deriveObjectType[Unit, Link]()
 
-  implicit val linkHasId = HasId[Link, Int](_.id)
+  implicit val LinkType = deriveObjectType[Unit, Link](
+    Interfaces(IdentifiableType)
+  )
+
   val linksFetcher = Fetcher(
     (ctx: MyContext, ids: Seq[Int]) => ctx.dao.getLinks(ids)
   )
 
-  implicit val UserType = deriveObjectType[Unit, User]()
-  implicit val userHasId = HasId[User, Int](_.id)
+  implicit val UserType = deriveObjectType[Unit, User](
+    Interfaces(IdentifiableType)
+  )
 
   val usersFetcher = Fetcher(
     (ctx: MyContext, ids: Seq[Int]) => ctx.dao.getUsers(ids)
   )
 
-  implicit val VoteType = deriveObjectType[Unit, Vote]()
-  implicit val voteHasId = HasId[Vote, Int](_.id)
+  implicit val VoteType = deriveObjectType[Unit, Vote](
+    Interfaces(IdentifiableType)
+  )
 
   val votesFetcher = Fetcher(
     (ctx: MyContext, ids: Seq[Int]) => ctx.dao.getVotes(ids)
