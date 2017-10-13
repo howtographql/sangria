@@ -3,7 +3,7 @@ package com.howtographql.scala.sangria
 import java.sql.Timestamp
 
 import akka.http.scaladsl.model.DateTime
-import com.howtographql.scala.sangria.models.Link
+import com.howtographql.scala.sangria.models.{Link, User, Vote}
 import slick.jdbc.H2Profile.api._
 
 import scala.concurrent.duration._
@@ -31,16 +31,54 @@ object DBSchema {
 
   val Links = TableQuery[LinksTable]
 
+  class UsersTable(tag: Tag) extends Table[User](tag, "USERS"){
+    def id = column[Int]("ID", O.PrimaryKey)
+    def name = column[String]("NAME")
+    def email = column[String]("EMAIL")
+    def password = column[String]("PASSWORD")
+    def createdAt = column[DateTime]("CREATED_AT")
+
+    def * = (id, name, email, password, createdAt).mapTo[User]
+  }
+
+  val Users = TableQuery[UsersTable]
+
+  class VotesTable(tag: Tag) extends Table[Vote](tag, "VOTES"){
+    def id = column[Int]("ID", O.PrimaryKey)
+    def userId = column[Int]("USER_ID")
+    def linkId = column[Int]("LINK_ID")
+    def createdAt = column[DateTime]("CREATED_AT")
+
+    def * = (id, userId, linkId, createdAt).mapTo[Vote]
+  }
+
+  val Votes = TableQuery[VotesTable]
+
   /**
     * Load schema and populate sample data withing this Sequence od DBActions
     */
   val databaseSetup = DBIO.seq(
     Links.schema.create,
+    Users.schema.create,
+    Votes.schema.create,
 
     Links ++= Seq(
       Link(1, "http://howtographql.com", "Awesome community driven GraphQL tutorial", DateTime(2017,9,12)),
       Link(2, "http://graphql.org", "Official GraphQL webpage",DateTime(2017,10,1)),
       Link(3, "https://facebook.github.io/graphql/", "GraphQL specification",DateTime(2017,10,2))
+    ),
+
+
+    Users ++= Seq(
+      User(1, "mario", "mario@example.com", "s3cr3t"),
+      User(2, "Fred", "fred@flinstones.com", "wilmalove")
+    ),
+
+    Votes ++= Seq(
+      Vote(1, 1, 1),
+      Vote(2, 1, 2),
+      Vote(3, 1, 3),
+      Vote(4, 2, 2),
     )
   )
 
