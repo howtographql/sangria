@@ -23,9 +23,12 @@ object DBSchema {
     def id = column[Int]("ID", O.PrimaryKey)
     def url = column[String]("URL")
     def description = column[String]("DESCRIPTION")
+    def postedBy = column[Int]("USER_ID")
     def createdAt = column[DateTime]("CREATED_AT")
 
-    def * = (id, url, description, createdAt) <> ((Link.apply _).tupled, Link.unapply)
+    def postedByFK = foreignKey("postedBy_FK", postedBy, Users)(_.id)
+
+    def * = (id, url, description, postedBy, createdAt) <> ((Link.apply _).tupled, Link.unapply)
 
   }
 
@@ -49,6 +52,9 @@ object DBSchema {
     def linkId = column[Int]("LINK_ID")
     def createdAt = column[DateTime]("CREATED_AT")
 
+    def userFK = foreignKey("user_FK", userId, Users)(_.id)
+    def linkFK = foreignKey("link_FK", linkId, Links)(_.id)
+
     def * = (id, userId, linkId, createdAt).mapTo[Vote]
   }
 
@@ -58,20 +64,19 @@ object DBSchema {
     * Load schema and populate sample data withing this Sequence od DBActions
     */
   val databaseSetup = DBIO.seq(
-    Links.schema.create,
     Users.schema.create,
+    Links.schema.create,
     Votes.schema.create,
-
-    Links ++= Seq(
-      Link(1, "http://howtographql.com", "Awesome community driven GraphQL tutorial", DateTime(2017,9,12)),
-      Link(2, "http://graphql.org", "Official GraphQL webpage",DateTime(2017,10,1)),
-      Link(3, "https://facebook.github.io/graphql/", "GraphQL specification",DateTime(2017,10,2))
-    ),
-
 
     Users ++= Seq(
       User(1, "mario", "mario@example.com", "s3cr3t"),
       User(2, "Fred", "fred@flinstones.com", "wilmalove")
+    ),
+
+    Links ++= Seq(
+      Link(1, "http://howtographql.com", "Awesome community driven GraphQL tutorial",1, DateTime(2017,9,12)),
+      Link(2, "http://graphql.org", "Official GraphQL webpage",1, DateTime(2017,10,1)),
+      Link(3, "https://facebook.github.io/graphql/", "GraphQL specification",2, DateTime(2017,10,2))
     ),
 
     Votes ++= Seq(

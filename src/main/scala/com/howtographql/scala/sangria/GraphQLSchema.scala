@@ -3,12 +3,14 @@ package com.howtographql.scala.sangria
 import akka.http.scaladsl.model.DateTime
 import com.howtographql.scala.sangria.models.{Identifiable, Link, User, Vote}
 import sangria.ast.StringValue
-import sangria.execution.deferred.{DeferredResolver, Fetcher, HasId}
+import sangria.execution.deferred._
 import sangria.schema.{Field, ListType, ObjectType}
 import sangria.schema._
 import sangria.macros._
 import sangria.macros.derive._
 import sangria.validation.Violation
+import sangria.schema.{Argument, BigDecimalType, BooleanType, Context, DeferredValue, Field, FloatType, ListInputType, ListType, LongType, ObjectType, OptionInputType, OptionType, StringType, fields, interfaces}
+
 
 object GraphQLSchema {
 
@@ -28,38 +30,45 @@ object GraphQLSchema {
     }
   )
 
-  val IdentifiableType = InterfaceType(
+  val IdentifiableType: InterfaceType[MyContext, Identifiable] = InterfaceType(
     "Identifiable",
-    fields[Unit, Identifiable](
+    fields[MyContext, Identifiable](
       Field("id", IntType, resolve = _.value.id)
     )
   )
 
+  val linkByUserRel = Relation[Link, Int]("byUser", l => Seq(l.postedBy))
 
-  implicit val LinkType = deriveObjectType[Unit, Link](
-    Interfaces(IdentifiableType)
+  implicit lazy val UserType: ObjectType[MyContext, User] = deriveObjectType[MyContext, User](
+    Interfaces[MyContext, User](IdentifiableType),
+    AddFields(
+      Field("links", ListType(LinkType), resolve = c =>  linksFetcher.deferRelSeq(linkByUserRel, c.value.id))
+    )
   )
 
-  val linksFetcher = Fetcher(
-    (ctx: MyContext, ids: Seq[Int]) => ctx.dao.getLinks(ids)
+  implicit lazy val LinkType = deriveObjectType[MyContext, Link](
+    Interfaces[MyContext, Link](IdentifiableType),
+    ReplaceField("postedBy",
+      Field("postedBy", UserType, resolve = c => usersFetcher.defer(c.value.postedBy))
+    )
   )
 
-  implicit val UserType = deriveObjectType[Unit, User](
-    Interfaces(IdentifiableType)
+  val linksFetcher = Fetcher.rel(
+    (ctx: MyContext, ids: Seq[Int]) => ctx.dao.getLinks(ids),
+    (ctx: MyContext, ids: RelationIds[Link]) => ctx.dao.getLinksByUserIds(ids(linkByUserRel))
   )
 
   val usersFetcher = Fetcher(
     (ctx: MyContext, ids: Seq[Int]) => ctx.dao.getUsers(ids)
   )
 
-  implicit val VoteType = deriveObjectType[Unit, Vote](
-    Interfaces(IdentifiableType)
+  implicit val VoteType = deriveObjectType[MyContext, Vote](
+    Interfaces[MyContext, Vote](IdentifiableType)
   )
 
   val votesFetcher = Fetcher(
     (ctx: MyContext, ids: Seq[Int]) => ctx.dao.getVotes(ids)
   )
-
 
   val Id = Argument("id", IntType)
   val Ids = Argument("ids", ListInputType(IntType))
