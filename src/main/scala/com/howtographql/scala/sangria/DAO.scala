@@ -34,4 +34,10 @@ class DAO(db: Database) {
       Votes.filter(_.id inSet ids).result
     )
   }
+
+  def getVotesByUserIds(ids: Seq[Int]): Future[Seq[Vote]] = {
+    db.run {
+      Votes.filter(_.userId inSet ids).result
+    }
+  }
 }
