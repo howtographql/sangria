@@ -39,12 +39,13 @@ object GraphQLSchema {
 
   val linkByUserRel = Relation[Link, Int]("byUser", l => Seq(l.postedBy))
   val voteByUserRel = Relation[Vote, Int]("byUser", v => Seq(v.userId))
+  val voteByLinkRel = Relation[Vote, Int]("byLink", v => Seq(v.linkId))
 
   implicit lazy val UserType: ObjectType[MyContext, User] = deriveObjectType[MyContext, User](
     Interfaces[MyContext, User](IdentifiableType),
     AddFields(
-      Field("links", ListType(LinkType), resolve = c =>  linksFetcher.deferRelSeq(linkByUserRel, c.value.id)),
-      Field("votes", ListType(VoteType), resolve = c =>  votesFetcher.deferRelSeq(voteByUserRel, c.value.id))
+      Field("links", ListType(LinkType), resolve = c => linksFetcher.deferRelSeq(linkByUserRel, c.value.id)),
+      Field("votes", ListType(VoteType), resolve = c => votesFetcher.deferRelSeq(voteByUserRel, c.value.id))
     )
   )
 
@@ -52,6 +53,9 @@ object GraphQLSchema {
     Interfaces[MyContext, Link](IdentifiableType),
     ReplaceField("postedBy",
       Field("postedBy", UserType, resolve = c => usersFetcher.defer(c.value.postedBy))
+    ),
+    AddFields(
+      Field("votes", ListType(VoteType), resolve = c => votesFetcher.deferRelSeq(voteByLinkRel, c.value.id))
     )
   )
 
@@ -72,7 +76,7 @@ object GraphQLSchema {
 
   val votesFetcher = Fetcher.rel(
     (ctx: MyContext, ids: Seq[Int]) => ctx.dao.getVotes(ids),
-    (ctx: MyContext, ids: RelationIds[Vote]) => ctx.dao.getVotesByUserIds(ids(voteByUserRel))
+    (ctx: MyContext, ids: RelationIds[Vote]) => ctx.dao.getVotesByRelationIds(ids)
   )
 
   val Id = Argument("id", IntType)
