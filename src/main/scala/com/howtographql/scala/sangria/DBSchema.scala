@@ -68,7 +68,7 @@ object DBSchema {
     Links.schema.create,
     Votes.schema.create,
 
-    Users forceInsertAll  Seq(
+    Users forceInsertAll Seq(
       User(1, "mario", "mario@example.com", "s3cr3t"),
       User(2, "Fred", "fred@flinstones.com", "wilmalove")
     ),
