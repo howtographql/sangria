@@ -20,7 +20,7 @@ object DBSchema {
 
   class LinksTable(tag: Tag) extends Table[Link](tag, "LINKS"){
 
-    def id = column[Int]("ID", O.PrimaryKey)
+    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
     def url = column[String]("URL")
     def description = column[String]("DESCRIPTION")
     def createdAt = column[DateTime]("CREATED_AT")
@@ -37,7 +37,7 @@ object DBSchema {
   val databaseSetup = DBIO.seq(
     Links.schema.create,
 
-    Links ++= Seq(
+    Links forceInsertAll Seq(
       Link(1, "http://howtographql.com", "Awesome community driven GraphQL tutorial", DateTime(2017,9,12)),
       Link(2, "http://graphql.org", "Official GraphQL webpage",DateTime(2017,10,1)),
       Link(3, "https://facebook.github.io/graphql/", "GraphQL specification",DateTime(2017,10,2))
