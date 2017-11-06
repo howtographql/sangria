@@ -60,4 +60,23 @@ class DAO(db: Database) {
     }
 
   }
+
+  def createLink(url: String, description: String, postedBy: Int): Future[Link] = {
+
+    val insertAndReturnLinkQuery = (Links returning Links.map(_.id)) into {
+      (link, id) => link.copy(id = id)
+    }
+    db.run {
+      insertAndReturnLinkQuery += Link(0, url, description, postedBy)
+    }
+  }
+
+  def createVote(linkId: Int, userId: Int): Future[Vote] = {
+    val insertAndReturnVoteQuery = (Votes returning Votes.map(_.id)) into {
+      (vote, id) => vote.copy(id = id)
+    }
+    db.run {
+      insertAndReturnVoteQuery += Vote(0, userId, linkId)
+    }
+  }
 }

@@ -1,13 +1,14 @@
 package com.howtographql.scala.sangria
 
 import akka.http.scaladsl.model.DateTime
-import com.howtographql.scala.sangria.models.{Identifiable, Link, User, Vote}
+import com.howtographql.scala.sangria.models._
 import sangria.ast.StringValue
 import sangria.execution.deferred._
 import sangria.schema.{Field, ListType, ObjectType}
 import sangria.schema._
 import sangria.macros._
 import sangria.macros.derive._
+import sangria.marshalling.{CoercedScalaResultMarshaller, FromInput}
 import sangria.validation.Violation
 import sangria.schema.{Argument, BigDecimalType, BooleanType, Context, DeferredValue, Field, FloatType, ListInputType, ListType, LongType, ObjectType, OptionInputType, OptionType, StringType, fields, interfaces}
 
@@ -109,7 +110,56 @@ object GraphQLSchema {
     )
   )
 
+  /**
+    * Mutations
+    */
+  import sangria.marshalling.sprayJson._
+  import spray.json.DefaultJsonProtocol._
+
+  implicit val authProviderEmailFormat = jsonFormat2(AuthProviderEmail)
+  implicit val authProviderSignupDataFormat = jsonFormat1(AuthProviderSignupData)
+
+
+
+  implicit val AuthProviderEmailInputType: InputObjectType[AuthProviderEmail] = deriveInputObjectType[AuthProviderEmail](
+    InputObjectTypeName("AUTH_PROVIDER_EMAIL")
+  )
+
+  implicit val AuthProviderSignupDataInputType: InputObjectType[AuthProviderSignupData] = deriveInputObjectType[AuthProviderSignupData]()
+
+
+  val NameArg = Argument("name", StringType)
+  val AuthProviderArg = Argument("authProvider", AuthProviderSignupDataInputType)
+
+  val UrlArg = Argument("url", StringType)
+  val DescArg = Argument("description", StringType)
+  val PostedByArg = Argument("postedById", IntType)
+
+  val LinkIdArg = Argument("linkId", IntType)
+  val UserIdArg = Argument("userId", IntType)
+
+  val Mutation = ObjectType(
+    "Mutation",
+    fields[MyContext, Unit](
+      Field("createUser",
+        UserType,
+        arguments = NameArg :: AuthProviderArg :: Nil,
+        resolve = c => c.ctx.dao.createUser(c.arg(NameArg), c.arg(AuthProviderArg))
+      ),
+      Field("createLink",
+        LinkType,
+        arguments = UrlArg :: DescArg :: PostedByArg :: Nil,
+        resolve = c => c.ctx.dao.createLink(c.arg(UrlArg), c.arg(DescArg), c.arg(PostedByArg))),
+      Field("createVote",
+        VoteType,
+        arguments = LinkIdArg :: UserIdArg :: Nil,
+        resolve = c => c.ctx.dao.createVote(c.arg(LinkIdArg), c.arg(UserIdArg)))
+    )
+  )
+
+
+
   val Resolver = DeferredResolver.fetchers(linksFetcher, usersFetcher, votesFetcher)
   //#
-  val SchemaDefinition = Schema(QueryType)
+  val SchemaDefinition = Schema(QueryType, Some(Mutation))
 }
