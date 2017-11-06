@@ -1,7 +1,7 @@
 package com.howtographql.scala.sangria
 
 import com.howtographql.scala.sangria.DBSchema._
-import com.howtographql.scala.sangria.models.{Link, User, Vote}
+import com.howtographql.scala.sangria.models.{AuthProviderSignupData, Link, User, Vote}
 import sangria.execution.deferred.{RelationIds, SimpleRelation}
 import slick.jdbc.H2Profile.api._
 
@@ -48,4 +48,16 @@ class DAO(db: Database) {
       } result
     )
 
+  def createUser(name: String, authProvider: AuthProviderSignupData): Future[User] = {
+    val newUser = User(0, name, authProvider.email.email, authProvider.email.password )
+
+    val insertAndReturnUserQuery = (Users returning Users.map(_.id)) into {
+      (user, id) => user.copy(id = id)
+    }
+
+    db.run {
+      insertAndReturnUserQuery += newUser
+    }
+
+  }
 }
