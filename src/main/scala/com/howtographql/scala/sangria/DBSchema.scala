@@ -20,7 +20,7 @@ object DBSchema {
 
   class LinksTable(tag: Tag) extends Table[Link](tag, "LINKS"){
 
-    def id = column[Int]("ID", O.PrimaryKey)
+    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
     def url = column[String]("URL")
     def description = column[String]("DESCRIPTION")
     def postedBy = column[Int]("USER_ID")
@@ -35,7 +35,7 @@ object DBSchema {
   val Links = TableQuery[LinksTable]
 
   class UsersTable(tag: Tag) extends Table[User](tag, "USERS"){
-    def id = column[Int]("ID", O.PrimaryKey)
+    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
     def name = column[String]("NAME")
     def email = column[String]("EMAIL")
     def password = column[String]("PASSWORD")
@@ -47,7 +47,7 @@ object DBSchema {
   val Users = TableQuery[UsersTable]
 
   class VotesTable(tag: Tag) extends Table[Vote](tag, "VOTES"){
-    def id = column[Int]("ID", O.PrimaryKey)
+    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
     def userId = column[Int]("USER_ID")
     def linkId = column[Int]("LINK_ID")
     def createdAt = column[DateTime]("CREATED_AT")
@@ -68,18 +68,18 @@ object DBSchema {
     Links.schema.create,
     Votes.schema.create,
 
-    Users ++= Seq(
+    Users forceInsertAll Seq(
       User(1, "mario", "mario@example.com", "s3cr3t"),
       User(2, "Fred", "fred@flinstones.com", "wilmalove")
     ),
 
-    Links ++= Seq(
+    Links forceInsertAll Seq(
       Link(1, "http://howtographql.com", "Awesome community driven GraphQL tutorial",1, DateTime(2017,9,12)),
       Link(2, "http://graphql.org", "Official GraphQL webpage",1, DateTime(2017,10,1)),
       Link(3, "https://facebook.github.io/graphql/", "GraphQL specification",2, DateTime(2017,10,2))
     ),
 
-    Votes ++= Seq(
+    Votes forceInsertAll Seq(
       Vote(1, 1, 1),
       Vote(2, 1, 2),
       Vote(3, 1, 3),
