@@ -28,7 +28,7 @@ object DBSchema {
 
     def postedByFK = foreignKey("postedBy_FK", postedBy, Users)(_.id)
 
-    def * = (id, url, description, postedBy, createdAt) <> ((Link.apply _).tupled, Link.unapply)
+    def * = (id, url, description, postedBy, createdAt).mapTo[Link]
 
   }
 
