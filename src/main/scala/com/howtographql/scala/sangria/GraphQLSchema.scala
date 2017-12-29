@@ -3,6 +3,7 @@ package com.howtographql.scala.sangria
 import akka.http.scaladsl.model.DateTime
 import com.howtographql.scala.sangria.models._
 import sangria.ast.StringValue
+import sangria.execution.{ExceptionHandler, HandledException}
 import sangria.execution.deferred._
 import sangria.schema.{Field, ListType, ObjectType}
 import sangria.schema._
@@ -160,6 +161,12 @@ object GraphQLSchema {
 
 
   val Resolver = DeferredResolver.fetchers(linksFetcher, usersFetcher, votesFetcher)
+
+  val ErrorHandler = ExceptionHandler {
+    case (m, AuthenticationException(message)) ⇒ HandledException(message)
+    case (m, AuthorisationException(message)) ⇒ HandledException(message)
+  }
+
   //#
   val SchemaDefinition = Schema(QueryType, Some(Mutation))
 }
