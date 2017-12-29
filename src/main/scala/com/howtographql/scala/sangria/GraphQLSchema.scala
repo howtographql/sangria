@@ -134,7 +134,6 @@ object GraphQLSchema {
 
   val UrlArg = Argument("url", StringType)
   val DescArg = Argument("description", StringType)
-  val PostedByArg = Argument("postedById", IntType)
 
   val LinkIdArg = Argument("linkId", IntType)
   val UserIdArg = Argument("userId", IntType)
@@ -149,8 +148,8 @@ object GraphQLSchema {
       ),
       Field("createLink",
         LinkType,
-        arguments = UrlArg :: DescArg :: PostedByArg :: Nil,
-        resolve = c => c.ctx.dao.createLink(c.arg(UrlArg), c.arg(DescArg), c.arg(PostedByArg))),
+        arguments = UrlArg :: DescArg :: Nil,
+        resolve = c => c.ctx.dao.createLink(c.arg(UrlArg), c.arg(DescArg), c.ctx.user.id)),
       Field("createVote",
         VoteType,
         arguments = LinkIdArg :: UserIdArg :: Nil,
