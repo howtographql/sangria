@@ -134,9 +134,13 @@ object GraphQLSchema {
 
   val UrlArg = Argument("url", StringType)
   val DescArg = Argument("description", StringType)
+  val PostedByArg = Argument("postedById", IntType)
 
   val LinkIdArg = Argument("linkId", IntType)
   val UserIdArg = Argument("userId", IntType)
+
+  val EmailArg = Argument("email", StringType)
+  val PasswordArg = Argument("password", StringType)
 
   val Mutation = ObjectType(
     "Mutation",
@@ -148,12 +152,21 @@ object GraphQLSchema {
       ),
       Field("createLink",
         LinkType,
-        arguments = UrlArg :: DescArg :: Nil,
-        resolve = c => c.ctx.dao.createLink(c.arg(UrlArg), c.arg(DescArg), c.ctx.user.id)),
+        arguments = UrlArg :: DescArg :: PostedByArg :: Nil,
+        tags = Authorised :: Nil,
+        resolve = c => c.ctx.dao.createLink(c.arg(UrlArg), c.arg(DescArg), c.arg(PostedByArg))),
       Field("createVote",
         VoteType,
         arguments = LinkIdArg :: UserIdArg :: Nil,
-        resolve = c => c.ctx.dao.createVote(c.arg(LinkIdArg), c.arg(UserIdArg)))
+        resolve = c => c.ctx.dao.createVote(c.arg(LinkIdArg), c.arg(UserIdArg))),
+      Field("login",
+        OptionType(UserType),
+        arguments = EmailArg :: PasswordArg :: Nil,
+        resolve = ctx => UpdateCtx(
+          ctx.ctx.login(ctx.arg(EmailArg), ctx.arg(PasswordArg))){ user =>
+            ctx.ctx.copy(currentUser = Some(user))
+          }
+      )
     )
   )
 

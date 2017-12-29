@@ -13,7 +13,7 @@ case class MyContext(dao: DAO, currentUser: Option[User] = None){
     )
   }
 
-  def user: User = currentUser.getOrElse(
-    throw AuthorisationException("You do not have permission. Please sign in.")
-  )
+  def ensureAuthenticated() =
+    if(currentUser.isEmpty)
+      throw AuthorisationException("You do not have permission. Please sign in.")
 }

@@ -1,6 +1,7 @@
 package com.howtographql.scala.sangria.models
 
 import akka.http.scaladsl.model.DateTime
+import sangria.execution.FieldTag
 import sangria.execution.deferred.HasId
 
 trait Identifiable {
@@ -23,3 +24,5 @@ case class AuthProviderSignupData(email: AuthProviderEmail)
 
 case class AuthenticationException(message: String) extends Exception(message)
 case class AuthorisationException(message: String) extends Exception(message)
+
+case object Authorised extends FieldTag

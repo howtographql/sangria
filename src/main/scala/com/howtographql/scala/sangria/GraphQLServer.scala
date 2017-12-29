@@ -58,7 +58,8 @@ object GraphQLServer {
       variables = vars, //#
       operationName = operation,
       deferredResolver = GraphQLSchema.Resolver,
-      exceptionHandler = GraphQLSchema.ErrorHandler
+      exceptionHandler = GraphQLSchema.ErrorHandler,
+      middleware = AuthMiddleware :: Nil
     ).map(OK -> _) //#
       .recover {
       case error: QueryAnalysisError => BadRequest -> error.resolveError
