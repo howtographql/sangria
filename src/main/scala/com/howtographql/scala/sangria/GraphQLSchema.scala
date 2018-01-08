@@ -160,7 +160,7 @@ object GraphQLSchema {
         arguments = LinkIdArg :: UserIdArg :: Nil,
         resolve = c => c.ctx.dao.createVote(c.arg(LinkIdArg), c.arg(UserIdArg))),
       Field("login",
-        OptionType(UserType),
+        UserType,
         arguments = EmailArg :: PasswordArg :: Nil,
         resolve = ctx => UpdateCtx(
           ctx.ctx.login(ctx.arg(EmailArg), ctx.arg(PasswordArg))){ user =>
